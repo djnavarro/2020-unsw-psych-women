@@ -1,0 +1,19 @@
+name: UNSW Women in Psychological Science
+output_dir: docs
+exclude:
+  - "README.*"
+  - "header.html"
+  - "other"
+  - "data"
+  - "2019"
+navbar:
+  title: UNSW Women in Psychological Science
+  right:
+  - text: 2019
+    href: "./2019.html"
+  - text: 2018
+    href: "2018/index.html"
+output:
+  html_document:
+    lib_dir: libs
+    self_contained: no

@@ -1,0 +1,150 @@
+---
+title: "<div class='jumbotron'><h1 class='title toc-ignore display-3' align='center'>International Women's Day</h1><p class='lead' align='center'>UNSW Psychology, 8 March 2019</p></div>"
+output:
+  html_document:
+    self_contained: false
+    includes:
+      in_header: header.html
+    highlight: textmate
+    css: mystyle.css
+pagetitle: UNSW Women in Psychological Science
+---
+
+```{r setup, echo=FALSE, message=FALSE}
+rm(list=objects()) # clean workspace
+
+# package load
+library(tidyverse)
+library(here)
+library(slickR)
+library(imager)
+```
+
+
+```{r carousel, echo=FALSE, message=FALSE}
+
+# function to create small images for the carousel
+make_thumbnail <- function(img) {
+  here("img",img) %>% 
+    load.image() %>%
+    resize(270, 270) %>%  # higher size for hi-res displays
+    save.image(here("thumb",img))
+}
+
+# create all small images
+list.files(here("img")) %>%
+  walk(make_thumbnail)
+
+# list all the thumbnails
+thumbs <- list.files(here("thumb"), full.names = TRUE)
+
+# construct the carousel (an htmlwidget)
+carousel <- slickR(
+  obj = sample(thumbs),
+  width = "100%",    
+  height = 180,
+  slickOpts = list(
+    initialSlide = 0,
+    slidesToShow = 5,
+    slidesToScroll = 5,
+    focusOnSelect = TRUE,
+    autoplay = TRUE,
+    autoplaySpeed = 5000,
+    dots = FALSE,
+    responsive = list(
+      list(
+        breakpoint = 800,
+        settings = list(
+          slidesToShow = 3,
+          slidesToScroll = 3
+        )
+      ),
+      list(
+        breakpoint = 600,
+        settings = list(
+          slidesToShow = 2,
+          slidesToScroll = 2
+        )
+      )
+    )
+  )
+)
+
+# print to document
+carousel 
+```
+
+
+<br><br>
+<h2 align="center">Balance for Better</h2>
+<hr>
+<br>
+
+[International Women's Day](https://www.internationalwomensday.com/) (IWD) exists to celebrate the social, economic, cultural and political achievements of women around the world, and dates back to the first IWD meeting in 1911. Beyond celebration, however, the day is also call to action. It presents an opportunity to build a better, more balanced world in which everyone has an equal opportunity to participate fully in society. This International Women's Day, there is an amazing collection of events [happening at UNSW](https://www.iwd.unsw.edu.au/), and we encourage everyone affiliated with the UNSW School of Psychology to take part. 
+
+Each year the IWD celebrations have a different theme - in 2019 the focus is on [#BalanceForBetter](https://www.internationalwomensday.com/Theme). A gender balanced world is one that creates opportunities for everyone. In STEMM disciplines such as psychology, we aim to put an end to the view that scientific and technical fields are the province of men, and to the view that caring and nurturing roles are solely the province of women. When striving for a gender balanced world we seek balance for academic and professional staff, equality for transgender scientists and for the women of colour in our discipline. A balanced world is one in which we are *all* free, and gender balance must be a part of that better world.
+
+Here at UNSW Psychology, we want to take this opportunity to celebrate our incredible women working in psychological science. The bios presented below showcase just some of the women working in psychological research at UNSW and the diversity of the science that they pursue. This is an ongoing project, added to over time, to work at broadening the perception of what it means to be a scientist. If you would like to be featured, please email [psychologyequity@unsw.edu.au](mailto:psychologyequity@unsw.edu.au).
+
+<br><br>
+<h2 align="center">UNSW Women in Psychological Science</h2>
+<hr>
+<br>
+
+```{r makeprofiles, echo=FALSE, message=FALSE}
+# load the data
+profile <- here("data", "profiles2019.csv") %>% read_csv()
+np <- dim(profile)[1]
+
+# extract the surname using base R regexes
+# next year: switch to stringr
+n <- profile$name
+n <- gsub("Drs", "", n, fixed = TRUE)
+n <- gsub("Dr", "", n, fixed = TRUE)
+n <- gsub("Associate", "", n, fixed = TRUE)
+n <- gsub("Professor", "" ,n, fixed = TRUE)
+n <- gsub(",.*", "", n)
+n <- gsub("and.*", "", n)
+n <- gsub(" *$", "", n)
+n <- gsub("^.* ", "", n)
+
+# sort the profiles alphabetically by surname
+ord <- order(n, decreasing = FALSE)
+profile <- profile[ord,]
+
+# function to construct a single profile
+make_profile <- function(this) {
+  
+  str <- paste0(
+    '<div class="row">\n',
+    '  <div class="col-md-2">&nbsp;</div>\n',
+    '  <div class="col-md-3">\n',
+    '    <img width="200" height="200" src="./img/', this$img,'">\n',
+    '  </div>\n',
+    '  <div class="col-md-6">\n',
+    '    <p align="left">\n',
+    '      <span class="profile-name">', this$name, '</span><br>\n',
+    '      <span class="profile-text">', this$text, '</span>\n',
+    '    </p>',
+    '  </div>\n',
+    '  <div class="col-md-1"><br><br></div>\n',
+    '</div>\n',
+    '<div class="row"><br><br></div>\n\n'
+  ) 
+  return(str)
+}
+
+# construct all profiles
+profile_markup <- profile %>%
+  transpose() %>%
+  map_chr(make_profile)
+
+profile_markup <- c("\f", profile_markup)
+profile_markup <- paste(profile_markup, collapse = "")
+```
+
+<!--html_preserve-->
+```{r writeprofile, echo=FALSE}
+knitr::asis_output(profile_markup)
+```
+<!--/html_preserve-->

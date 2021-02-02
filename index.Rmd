@@ -1,0 +1,189 @@
+---
+title: "<br><div class='jumbotron'><h1 class='title toc-ignore display-3' align='center'>International Women's Day</h1><p class='lead' align='center'>UNSW Psychology, 8 March 2020</p></div>"
+output:
+  html_document:
+    self_contained: false
+    highlight: textmate
+    css: css/style2020.css
+pagetitle: UNSW Women in Psychological Science
+---
+
+
+```{r meta, echo=FALSE}
+library(metathis)
+meta() %>%
+  meta_general(
+    description = "UNSW Women in Psychological Science",
+  ) %>% 
+  meta_name("github-repo" = "djnavarro/unsw-psych-women") %>% 
+  meta_social(
+    title = "International Women's Day 2020",
+    url = "https://unsw-psych-women.org",
+    image = "https://unsw-psych-women.org/img/collage2020.png",
+    image_alt = "",
+    og_type = "website",
+    og_author = "",
+    twitter_card_type = "summary_large_image",
+    twitter_creator = ""
+  )
+```
+
+
+```{r setup, echo=FALSE, message=FALSE}
+rm(list=objects()) # clean workspace
+
+# package load
+library(tidyverse)
+library(here)
+library(htmlwidgets)
+library(slickR)
+library(imager)
+```
+
+```{r define-carousel, echo=FALSE, message=FALSE}
+year <- "2020"
+
+# function to create small images for the carousel
+make_thumbnail <- function(img) {
+  here("img",year, img) %>% 
+    load.image() %>%
+    resize(270, 270) %>%  # higher size for hi-res displays
+    save.image(here("thumb", year, img))
+}
+
+# create all small images
+list.files(here("img", year)) %>%
+  walk(make_thumbnail)
+
+# list all the thumbnails
+thumbs <- list.files(here("thumb", year), full.names = TRUE)
+
+# JS object for the reactive breakpoints: this is pure JS passed directly
+# to the slick carousel. see the demo http://kenwheeler.github.io/slick/
+rsp <- JS("[
+    {
+      breakpoint: 800, 
+      settings: {
+        slidesToShow: 3,
+        slidesToScroll: 3
+      }
+    }, 
+    {
+      breakpoint: 600, 
+      settings: {
+        slidesToShow: 2,
+        slidesToScroll: 2
+      }
+    }  
+  ]"
+)
+
+# construct the carousel (an htmlwidget)
+carousel <- slickR(
+  obj = sample(thumbs),
+  width = "100%",    
+  height = 180
+) + 
+  settings(
+    initialSlide = 0,
+    slidesToShow = 5,
+    slidesToScroll = 5,
+    focusOnSelect = TRUE,
+    autoplay = TRUE,
+    autoplaySpeed = 5000,
+    dots = FALSE,
+    responsive = rsp
+  )
+```
+
+
+<br><br>
+<h2 align="center">Each For Equal</h2>
+<hr>
+<br>
+
+<div class='splash-text'>
+
+[International Women's Day](https://www.internationalwomensday.com/) exists to celebrate the social, economic, cultural and political achievements of women around the world, and dates back to the first meeting in 1911. Beyond celebration, however, the day is also call to action. It presents an opportunity to build a better, more balanced world in which everyone has an equal opportunity to participate fully in society. Each year the International Women's Day celebrations have a different theme: in 2020 the focus is on [#EachForEqual](https://www.internationalwomensday.com/Theme). There are amazing events [happening at UNSW](https://www.iwd.unsw.edu.au/) and we encourage everyone to take part! 
+
+<br><br>
+
+```{r, echo=FALSE}
+carousel 
+```
+
+<br><br>
+
+We also want to take this opportunity to celebrate our incredible women working in psychological science. The profiles presented below showcase just some of the women working in psychological research at UNSW and the diversity of the science they pursue. If you would like to be featured, please email [psychologyequity@unsw.edu.au](mailto:psychologyequity@unsw.edu.au).
+
+</div>
+
+<br><br>
+<h2 align="center">UNSW Women in Psychological Science</h2>
+<hr>
+<br>
+
+```{r makeprofiles, echo=FALSE, message=FALSE}
+# load the data
+profile <- here("data", "profiles2020.csv") %>% read_csv()
+np <- dim(profile)[1]
+
+# extract the surname using base R regexes
+# next year: switch to stringr
+n <- profile$name
+n <- gsub("Drs", "", n, fixed = TRUE)
+n <- gsub("Dr", "", n, fixed = TRUE)
+n <- gsub("Associate", "", n, fixed = TRUE)
+n <- gsub("Professor", "" ,n, fixed = TRUE)
+n <- gsub(",.*", "", n)
+n <- gsub("and.*", "", n)
+n <- gsub(" *$", "", n)
+n <- gsub("^.* ", "", n)
+
+# sort the profiles alphabetically by surname
+ord <- order(n, decreasing = FALSE)
+profile <- profile[ord,]
+
+# function to construct a single profile
+make_profile <- function(this) {
+  
+  quote_str <- "";
+  if(!is.na(this$quote)) {
+    quote_str <- paste0('<br><br><div class="profile-quote">"', this$quote, '"</div>\n')
+  }
+  
+  str <- paste0(
+    '<div class="row">\n',
+    '  <div class="col-md-2">&nbsp;</div>\n',
+    '  <div class="col-md-3">\n',
+    '    <br>',
+    '    <img width="200" height="200" src="./img/', year, '/', this$img,'">\n',
+    '  </div>\n',
+    '  <div class="col-md-6">\n',
+    '    <p align="left">\n',
+    '      <div class="profile-name">', this$name, '</div><br>\n',
+    '      <div class="profile-text">', this$text, '</div>\n',
+    '      ', quote_str,
+    '    </p>',
+    '  </div>\n',
+    '  <div class="col-md-1"><br><br></div>\n',
+    '</div>\n',
+    '<div class="row"><br><br></div>\n\n'
+  ) 
+  return(str)
+}
+
+# construct all profiles
+profile_markup <- profile %>%
+  transpose() %>%
+  map_chr(make_profile)
+
+profile_markup <- c("\f", profile_markup)
+profile_markup <- paste(profile_markup, collapse = "")
+```
+
+<!--html_preserve-->
+```{r writeprofile, echo=FALSE}
+knitr::asis_output(profile_markup)
+```
+<!--/html_preserve-->
