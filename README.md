@@ -1,4 +1,4 @@
-# IWD 2019 site
+# IWD 2020 site
 
 The site has been shifted to R Markdown, so you can render the whole thing like this:
 
