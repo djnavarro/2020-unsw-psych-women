@@ -8,6 +8,7 @@ rmarkdown::render_site(input = ".")
 
 Notes:
 
+- New location: 2020.unsw-psych-women.org
 - The 2018 version is "orphaned", in the sense of being archived in the `2018` folder and not in any way tied to the R Markdown site. That folder just gets copied into the `docs` folder. 
 - The 2019 version is generated from `2019.Rmd` 
 - The `bootstrap.min.css` file supplies the [pulse bootswatch theme](https://bootswatch.com/pulse/) 
